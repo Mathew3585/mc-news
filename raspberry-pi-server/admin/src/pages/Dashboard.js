@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import NewsForm from '../components/NewsForm'
 import NewsList from '../components/NewsList'
+import Notification from '../components/Notification'
+import ConfirmModal from '../components/ConfirmModal'
 import './Dashboard.css'
 
 function Dashboard({ onLogout }) {
@@ -10,6 +12,8 @@ function Dashboard({ onLogout }) {
   const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingNews, setEditingNews] = useState(null)
+  const [notification, setNotification] = useState(null)
+  const [deleteModal, setDeleteModal] = useState(null)
 
   // Charger les actualités au montage
   useEffect(() => {
@@ -30,6 +34,10 @@ function Dashboard({ onLogout }) {
     }
   }
 
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type })
+  }
+
   const handleCreateNews = async (newsData) => {
     try {
       const token = localStorage.getItem('adminToken')
@@ -39,9 +47,9 @@ function Dashboard({ onLogout }) {
 
       await loadNews()
       setShowForm(false)
-      alert('Actualité créée avec succès !')
+      showNotification('✅ Actualité créée avec succès !', 'success')
     } catch (err) {
-      alert('Erreur lors de la création: ' + (err.response?.data?.error || err.message))
+      showNotification('❌ Erreur lors de la création: ' + (err.response?.data?.error || err.message), 'error')
     }
   }
 
@@ -55,16 +63,19 @@ function Dashboard({ onLogout }) {
       await loadNews()
       setEditingNews(null)
       setShowForm(false)
-      alert('Actualité mise à jour avec succès !')
+      showNotification('✅ Actualité mise à jour avec succès !', 'success')
     } catch (err) {
-      alert('Erreur lors de la mise à jour: ' + (err.response?.data?.error || err.message))
+      showNotification('❌ Erreur lors de la mise à jour: ' + (err.response?.data?.error || err.message), 'error')
     }
   }
 
-  const handleDeleteNews = async (id) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette actualité ?')) {
-      return
-    }
+  const handleDeleteNews = (id) => {
+    setDeleteModal(id)
+  }
+
+  const confirmDelete = async () => {
+    const id = deleteModal
+    setDeleteModal(null)
 
     try {
       const token = localStorage.getItem('adminToken')
@@ -73,9 +84,9 @@ function Dashboard({ onLogout }) {
       })
 
       await loadNews()
-      alert('Actualité supprimée avec succès !')
+      showNotification('✅ Actualité supprimée avec succès !', 'success')
     } catch (err) {
-      alert('Erreur lors de la suppression: ' + (err.response?.data?.error || err.message))
+      showNotification('❌ Erreur lors de la suppression: ' + (err.response?.data?.error || err.message), 'error')
     }
   }
 
@@ -96,6 +107,25 @@ function Dashboard({ onLogout }) {
 
   return (
     <div className="dashboard">
+      {/* Notification */}
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
+
+      {/* Modal de confirmation de suppression */}
+      {deleteModal && (
+        <ConfirmModal
+          title="Supprimer l'actualité"
+          message="Êtes-vous sûr de vouloir supprimer cette actualité ? Cette action est irréversible."
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteModal(null)}
+        />
+      )}
+
       {/* Header */}
       <header className="dashboard-header">
         <div className="header-left">
