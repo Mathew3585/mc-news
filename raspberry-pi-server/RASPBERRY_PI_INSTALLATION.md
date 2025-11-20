@@ -284,14 +284,58 @@ Vous devriez voir `news-server` avec le statut `online`.
 
 ### Prérequis
 
-- Avoir un nom de domaine (exemple : `mondomaine.com`)
-- Le domaine doit être sur Cloudflare (gratuit)
+- Avoir un nom de domaine (exemple : `losnachoschipies.fr` chez OVH)
+- Un compte Cloudflare (gratuit)
 
-### Étape 1 : Créer un compte Cloudflare
+### Étape 1 : Créer un compte Cloudflare et ajouter votre domaine
+
+#### 1.1 Créer le compte
 
 1. Allez sur https://cloudflare.com
-2. Créez un compte gratuit
-3. Ajoutez votre domaine
+2. Cliquez sur **Sign Up** (Inscription)
+3. Créez un compte gratuit avec votre email
+4. Vérifiez votre email
+
+#### 1.2 Ajouter votre domaine à Cloudflare
+
+1. Une fois connecté, cliquez sur **Add a Site** (Ajouter un site)
+2. Entrez votre domaine : `losnachoschipies.fr`
+3. Cliquez sur **Add site**
+4. Choisissez le plan **Free** (gratuit)
+5. Cliquez sur **Continue**
+
+Cloudflare va scanner vos enregistrements DNS existants (~1-2 minutes).
+
+#### 1.3 Changer les nameservers chez OVH
+
+Cloudflare va vous donner **2 nameservers** comme :
+```
+adam.ns.cloudflare.com
+noemi.ns.cloudflare.com
+```
+
+**Sur OVH** :
+
+1. Connectez-vous à votre espace client OVH : https://www.ovh.com/manager/
+2. Allez dans **Noms de domaine**
+3. Cliquez sur `losnachoschipies.fr`
+4. Onglet **Serveurs DNS**
+5. Cliquez sur **Modifier les serveurs DNS**
+6. Supprimez les serveurs DNS OVH par défaut
+7. Ajoutez les 2 nameservers Cloudflare :
+   - `adam.ns.cloudflare.com` (ou ceux que Cloudflare vous a donnés)
+   - `noemi.ns.cloudflare.com`
+8. Cliquez sur **Appliquer la configuration**
+
+⏱️ **Attention** : La propagation DNS peut prendre **2 à 48 heures** (souvent 2-4h en pratique).
+
+#### 1.4 Vérifier sur Cloudflare
+
+Retournez sur Cloudflare et cliquez sur **Done, check nameservers**.
+
+Cloudflare va vérifier. Si c'est bon, vous verrez un message de confirmation.
+
+**Note** : Vous pouvez continuer même si ce n'est pas encore propagé, mais le tunnel ne fonctionnera qu'une fois la propagation terminée.
 
 ### Étape 2 : Installer cloudflared sur le Pi
 
@@ -334,24 +378,36 @@ sudo mkdir -p /etc/cloudflared
 sudo nano /etc/cloudflared/config.yml
 ```
 
-Collez ce contenu (modifiez `TUNNEL_ID` et `mondomaine.com`) :
+Collez ce contenu (modifiez `TUNNEL_ID` avec l'ID de votre tunnel) :
 
 ```yaml
 tunnel: TUNNEL_ID
-credentials-file: /home/pi/.cloudflared/TUNNEL_ID.json
+credentials-file: /root/.cloudflared/TUNNEL_ID.json
 
 ingress:
-  - hostname: news.mondomaine.com
+  - hostname: news.losnachoschipies.fr
     service: http://localhost:3000
   - service: http_status:404
 ```
 
+**IMPORTANT** :
+- Remplacez `TUNNEL_ID` par l'ID que vous avez noté à l'étape 4
+- Le chemin est `/root/.cloudflared/` car vous êtes connecté en tant que `root`
+- Le hostname est `news.losnachoschipies.fr` (votre sous-domaine)
+
 Sauvegardez (`Ctrl+X`, `Y`, `Entrée`).
 
-### Étape 6 : Créer un enregistrement DNS
+### Étape 6 : Créer l'enregistrement DNS pour le sous-domaine
 
 ```bash
-cloudflared tunnel route dns news-server news.mondomaine.com
+cloudflared tunnel route dns news-server news.losnachoschipies.fr
+```
+
+Cette commande va automatiquement créer un enregistrement DNS `news.losnachoschipies.fr` dans Cloudflare qui pointe vers votre tunnel.
+
+Vous devriez voir :
+```
+INFO: Successfully created DNS route for news-server over news.losnachoschipies.fr
 ```
 
 ### Étape 7 : Démarrer le tunnel
@@ -360,11 +416,19 @@ cloudflared tunnel route dns news-server news.mondomaine.com
 cloudflared tunnel run news-server
 ```
 
-Testez : Ouvrez `https://news.mondomaine.com/api/health` dans votre navigateur.
+Vous devriez voir des logs comme :
+```
+INFO: Connection registered
+INFO: Registered tunnel connection
+```
 
-Vous devriez voir `{"status":"ok"...}` **avec HTTPS** ! 🎉
+**Testez depuis votre PC** : Ouvrez `https://news.losnachoschipies.fr/api/health` dans votre navigateur.
 
-Appuyez sur `Ctrl+C`.
+Vous devriez voir `{"status":"ok"...}` **avec HTTPS automatique** ! 🎉
+
+**Si ça ne marche pas** : Attendez quelques minutes que la propagation DNS soit complète.
+
+Une fois que ça fonctionne, appuyez sur `Ctrl+C` pour arrêter.
 
 ### Étape 8 : Configurer le démarrage automatique du tunnel
 
@@ -391,24 +455,61 @@ Ouvrez [src/renderer/config/api.js](../../src/renderer/config/api.js) :
 
 ```javascript
 export const API_CONFIG = {
-  NEWS_API_URL: 'https://news.mondomaine.com/api/news',
+  NEWS_API_URL: 'https://news.losnachoschipies.fr/api/news',
 }
 ```
 
+Sauvegardez et **recompilez votre launcher**.
+
 **Testez** : Relancez votre launcher, les actualités devraient apparaître ! 🚀
+
+### Accéder à l'interface admin
+
+Ouvrez votre navigateur et allez sur :
+```
+https://news.losnachoschipies.fr
+```
+
+Vous verrez la page de connexion. Connectez-vous avec :
+- **Username** : `admin`
+- **Password** : celui que vous avez configuré dans `.env`
 
 ---
 
-## 🔐 PARTIE 9 : Accéder à l'interface admin
+## 🔐 PARTIE 9 : Sécurité supplémentaire (Optionnel mais recommandé)
 
-1. Ouvrez votre navigateur
-2. Allez sur : `https://news.mondomaine.com`
-3. Vous verrez la page de login
-4. Connectez-vous avec :
-   - Username : `admin` (ou ce que vous avez mis dans `.env`)
-   - Password : votre mot de passe
+### Activer le mode "Under Attack" sur Cloudflare (en cas de besoin)
 
-5. **Créez votre première actualité !** 📰
+1. Allez sur votre dashboard Cloudflare
+2. Sélectionnez `losnachoschipies.fr`
+3. Onglet **Security** → **Settings**
+4. Security Level : Mettez sur **Medium** ou **High**
+
+### Limiter l'accès à l'interface admin (Optionnel)
+
+Si vous voulez que seul vous puissiez accéder à l'admin :
+
+1. Dans Cloudflare : **Security** → **WAF**
+2. Créez une règle pour bloquer l'accès à `news.losnachoschipies.fr` sauf depuis votre IP
+
+### Changer le mot de passe admin
+
+Sur le Raspberry Pi :
+
+```bash
+cd ~/mc-news/raspberry-pi-server
+nano .env
+```
+
+Générez un nouveau hash :
+```bash
+node -e "console.log(require('bcryptjs').hashSync('NOUVEAU_MOT_DE_PASSE', 10))"
+```
+
+Mettez le nouveau hash dans `.env` puis :
+```bash
+pm2 restart news-server
+```
 
 ---
 
@@ -430,11 +531,74 @@ pm2 start news-server   # Démarrer
 sudo journalctl -u cloudflared -f
 ```
 
-### Mettre à jour le serveur
+### Mettre à jour le serveur et le panel web depuis GitHub
+
+**Méthode automatique (recommandée)** :
+
+Un script de mise à jour automatique est fourni pour simplifier le processus :
 
 ```bash
 cd ~/raspberry-pi-server
-git pull  # Si vous utilisez Git
+chmod +x update-from-github.sh
+./update-from-github.sh
+```
+
+Ce script va automatiquement :
+- ✅ Récupérer les dernières modifications depuis GitHub
+- ✅ Vérifier les modifications locales et demander confirmation
+- ✅ Mettre à jour les dépendances backend et frontend
+- ✅ Reconstruire l'interface admin
+- ✅ Redémarrer le serveur
+- ✅ Afficher le statut et les logs
+
+---
+
+**Méthode manuelle** :
+
+Si vous préférez faire les étapes manuellement :
+
+```bash
+# Se positionner dans le dossier du projet
+cd ~/raspberry-pi-server
+
+# Récupérer les dernières modifications depuis GitHub
+git pull origin main
+
+# Mettre à jour les dépendances backend si nécessaire
+npm install
+
+# Reconstruire l'interface admin React
+cd admin
+npm install  # Au cas où de nouvelles dépendances ont été ajoutées
+npm run build
+
+# Retourner au dossier racine
+cd ..
+
+# Redémarrer le serveur pour appliquer les changements
+pm2 restart news-server
+
+# Vérifier que tout fonctionne
+pm2 status
+pm2 logs news-server --lines 20
+```
+
+**Si vous avez modifié seulement l'interface admin (panel web)** :
+
+```bash
+cd ~/raspberry-pi-server/admin
+git pull origin main
+npm install
+npm run build
+cd ..
+pm2 restart news-server
+```
+
+**Note** : Si vous obtenez des erreurs de conflits Git, le script automatique vous demandera confirmation avant d'écraser vos modifications. En manuel, vous pouvez forcer la mise à jour :
+```bash
+cd ~/raspberry-pi-server
+git fetch origin
+git reset --hard origin/main  # ATTENTION: cela écrase vos modifications locales !
 npm install
 cd admin && npm run build && cd ..
 pm2 restart news-server

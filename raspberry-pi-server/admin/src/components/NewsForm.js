@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import './NewsForm.css'
 
 function NewsForm({ newsData, onSubmit, onCancel }) {
@@ -9,6 +9,7 @@ function NewsForm({ newsData, onSubmit, onCancel }) {
     isNew: true,
     fullDescription: ''
   })
+  const editorRef = useRef(null)
 
   useEffect(() => {
     if (newsData) {
@@ -30,9 +31,21 @@ function NewsForm({ newsData, onSubmit, onCancel }) {
     }))
   }
 
+  const handleEditorInput = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      fullDescription: e.target.innerHTML
+    }))
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
     onSubmit(formData)
+  }
+
+  const executeCommand = (command, value = null) => {
+    document.execCommand(command, false, value)
+    editorRef.current.focus()
   }
 
   const insertHTMLTemplate = () => {
@@ -52,6 +65,9 @@ function NewsForm({ newsData, onSubmit, onCancel }) {
       ...prev,
       fullDescription: template
     }))
+    if (editorRef.current) {
+      editorRef.current.innerHTML = template
+    }
   }
 
   return (
@@ -135,8 +151,8 @@ function NewsForm({ newsData, onSubmit, onCancel }) {
         <div className="form-group">
           <div className="label-with-actions">
             <label>
-              <i className="fas fa-code"></i>
-              Contenu complet (HTML) *
+              <i className="fas fa-align-left"></i>
+              Contenu complet *
             </label>
             <button
               type="button"
@@ -148,15 +164,98 @@ function NewsForm({ newsData, onSubmit, onCancel }) {
               Template
             </button>
           </div>
-          <textarea
-            name="fullDescription"
-            value={formData.fullDescription}
-            onChange={handleChange}
-            placeholder="<p>Contenu HTML complet...</p>"
-            rows={15}
-            required
+
+          {/* Barre d'outils de formatage */}
+          <div className="editor-toolbar">
+            <button
+              type="button"
+              onClick={() => executeCommand('bold')}
+              className="toolbar-btn"
+              title="Gras"
+            >
+              <i className="fas fa-bold"></i>
+            </button>
+            <button
+              type="button"
+              onClick={() => executeCommand('italic')}
+              className="toolbar-btn"
+              title="Italique"
+            >
+              <i className="fas fa-italic"></i>
+            </button>
+            <button
+              type="button"
+              onClick={() => executeCommand('underline')}
+              className="toolbar-btn"
+              title="Souligné"
+            >
+              <i className="fas fa-underline"></i>
+            </button>
+
+            <div className="toolbar-separator"></div>
+
+            <button
+              type="button"
+              onClick={() => executeCommand('formatBlock', 'h3')}
+              className="toolbar-btn"
+              title="Titre"
+            >
+              <i className="fas fa-heading"></i>
+            </button>
+            <button
+              type="button"
+              onClick={() => executeCommand('formatBlock', 'p')}
+              className="toolbar-btn"
+              title="Paragraphe"
+            >
+              <i className="fas fa-paragraph"></i>
+            </button>
+
+            <div className="toolbar-separator"></div>
+
+            <button
+              type="button"
+              onClick={() => executeCommand('insertUnorderedList')}
+              className="toolbar-btn"
+              title="Liste à puces"
+            >
+              <i className="fas fa-list-ul"></i>
+            </button>
+            <button
+              type="button"
+              onClick={() => executeCommand('insertOrderedList')}
+              className="toolbar-btn"
+              title="Liste numérotée"
+            >
+              <i className="fas fa-list-ol"></i>
+            </button>
+
+            <div className="toolbar-separator"></div>
+
+            <button
+              type="button"
+              onClick={() => executeCommand('removeFormat')}
+              className="toolbar-btn"
+              title="Supprimer la mise en forme"
+            >
+              <i className="fas fa-eraser"></i>
+            </button>
+          </div>
+
+          {/* Éditeur WYSIWYG */}
+          <div
+            ref={editorRef}
+            contentEditable
+            className="wysiwyg-editor"
+            onInput={handleEditorInput}
+            dangerouslySetInnerHTML={{ __html: formData.fullDescription }}
+            data-placeholder="Commencez à écrire votre contenu ici..."
           />
-          <small>Utilisez du HTML : &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;</small>
+
+          <small>
+            <i className="fas fa-info-circle"></i>
+            Utilisez les boutons ci-dessus pour formater votre texte
+          </small>
         </div>
 
         {/* Preview */}
