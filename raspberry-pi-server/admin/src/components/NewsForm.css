@@ -6,7 +6,7 @@
 }
 
 .form-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
   color: white;
   padding: 25px 30px;
   display: flex;
@@ -79,8 +79,8 @@
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
 .form-group textarea {
@@ -136,7 +136,7 @@
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
-  color: #667eea;
+  color: #ff6b35;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -144,9 +144,9 @@
 }
 
 .btn-template:hover {
-  background: #667eea;
+  background: #ff6b35;
   color: white;
-  border-color: #667eea;
+  border-color: #ff6b35;
 }
 
 .preview-section {
@@ -231,13 +231,13 @@
 }
 
 .btn-submit {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
   color: white;
 }
 
 .btn-submit:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4);
 }
 
 /* Éditeur WYSIWYG */
@@ -269,9 +269,9 @@
 }
 
 .toolbar-btn:hover {
-  background: #667eea;
+  background: #ff6b35;
   color: white;
-  border-color: #667eea;
+  border-color: #ff6b35;
 }
 
 .toolbar-btn:active {
@@ -300,8 +300,8 @@
 }
 
 .wysiwyg-editor:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
 .wysiwyg-editor:empty:before {

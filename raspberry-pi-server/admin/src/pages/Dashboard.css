@@ -23,7 +23,7 @@
 
 .header-left i {
   font-size: 32px;
-  color: #667eea;
+  color: #ff6b35;
 }
 
 .header-left h1 {
@@ -44,12 +44,12 @@
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 16px;
-  color: #667eea;
+  color: #ff6b35;
 }
 
 .btn-refresh:hover {
-  border-color: #667eea;
-  background: #f0f4ff;
+  border-color: #ff6b35;
+  background: #fff5f2;
 }
 
 .btn-logout {
@@ -109,7 +109,7 @@
 
 .stat-item i {
   font-size: 32px;
-  color: #667eea;
+  color: #ff6b35;
 }
 
 .stat-item > div {
@@ -130,7 +130,7 @@
 
 .btn-new-news {
   margin-left: auto;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
   color: white;
   border: none;
   padding: 12px 25px;
@@ -146,7 +146,7 @@
 
 .btn-new-news:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4);
 }
 
 .loading {
@@ -157,7 +157,7 @@
 
 .loading i {
   font-size: 48px;
-  color: #667eea;
+  color: #ff6b35;
   margin-bottom: 15px;
 }
 
