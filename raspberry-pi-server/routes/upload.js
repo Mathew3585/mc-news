@@ -47,13 +47,19 @@ const upload = multer({
 
 // Route d'upload (protégée par authentification)
 router.post('/', verifyToken, upload.single('image'), (req, res) => {
+  console.log('[UPLOAD] Requête d\'upload reçue')
+  console.log('[UPLOAD] User:', req.user)
+  console.log('[UPLOAD] File:', req.file)
+
   try {
     if (!req.file) {
+      console.log('[UPLOAD] ❌ Aucun fichier fourni')
       return res.status(400).json({ error: 'Aucun fichier fourni' })
     }
 
     // Retourner l'URL de l'image
     const imageUrl = `/uploads/news-images/${req.file.filename}`
+    console.log('[UPLOAD] ✅ Image uploadée:', imageUrl)
 
     res.json({
       success: true,
@@ -61,9 +67,21 @@ router.post('/', verifyToken, upload.single('image'), (req, res) => {
       filename: req.file.filename
     })
   } catch (error) {
-    console.error('Erreur upload:', error)
+    console.error('[UPLOAD] ❌ Erreur upload:', error)
     res.status(500).json({ error: 'Erreur lors de l\'upload de l\'image' })
   }
+})
+
+// Gérer les erreurs multer
+router.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    console.error('[UPLOAD] ❌ Erreur Multer:', error.message)
+    return res.status(400).json({ error: `Erreur upload: ${error.message}` })
+  } else if (error) {
+    console.error('[UPLOAD] ❌ Erreur:', error.message)
+    return res.status(400).json({ error: error.message })
+  }
+  next()
 })
 
 // Route pour supprimer une image (protégée par authentification)
