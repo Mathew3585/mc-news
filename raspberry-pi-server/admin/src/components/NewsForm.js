@@ -71,27 +71,26 @@ function NewsForm({ newsData, onSubmit, onCancel }) {
 
       const token = localStorage.getItem('token')
 
-      // Créer un controller pour gérer le timeout
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 secondes timeout
+      console.log('📤 Envoi de l\'image au serveur...')
 
       const response = await fetch('/api/upload', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
         },
-        body: formDataUpload,
-        signal: controller.signal
+        body: formDataUpload
       })
 
-      clearTimeout(timeoutId)
+      console.log('📥 Réponse reçue:', response.status)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
+        console.error('❌ Erreur du serveur:', errorData)
         throw new Error(errorData.error || 'Erreur lors de l\'upload')
       }
 
       const result = await response.json()
+      console.log('✅ Résultat:', result)
 
       // Construire l'URL complète de l'image
       const imageUrl = `${window.location.origin}${result.url}`
@@ -103,14 +102,11 @@ function NewsForm({ newsData, onSubmit, onCancel }) {
       }))
 
       console.log('✅ Image uploadée avec succès:', imageUrl)
+      alert('Image uploadée avec succès !')
 
     } catch (error) {
       console.error('❌ Erreur upload:', error)
-      if (error.name === 'AbortError') {
-        alert('L\'upload a pris trop de temps (timeout 30s). Vérifiez votre connexion.')
-      } else {
-        alert(`Erreur lors de l'upload de l'image: ${error.message}`)
-      }
+      alert(`Erreur lors de l'upload de l'image: ${error.message}`)
     } finally {
       setUploadingImage(false)
     }
