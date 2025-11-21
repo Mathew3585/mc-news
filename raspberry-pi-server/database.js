@@ -116,6 +116,24 @@ const dbHelpers = {
         else resolve({ deleted: true, id })
       })
     })
+  },
+
+  // Supprimer les actualités de plus d'1 mois
+  deleteOldNews: () => {
+    return new Promise((resolve, reject) => {
+      // Calculer la date d'il y a 1 mois
+      const oneMonthAgo = new Date()
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
+
+      db.run(
+        'DELETE FROM news WHERE createdAt < ?',
+        [oneMonthAgo.toISOString()],
+        function(err) {
+          if (err) reject(err)
+          else resolve({ deleted: this.changes })
+        }
+      )
+    })
   }
 }
 

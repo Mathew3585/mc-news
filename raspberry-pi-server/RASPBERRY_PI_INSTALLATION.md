@@ -663,6 +663,36 @@ Vérifiez que :
 
 ---
 
+## 🗑️ Nettoyage Automatique des Actualités
+
+Le serveur inclut un système de **nettoyage automatique** des actualités :
+
+- ✅ Les actualités de **plus d'1 mois** sont automatiquement supprimées
+- ✅ Le nettoyage s'exécute **tous les jours** à 00h00
+- ✅ Le nettoyage s'exécute aussi **au démarrage du serveur**
+- ✅ Aucune action manuelle requise
+
+**Logs du nettoyage** :
+```bash
+pm2 logs news-server | grep CLEANUP
+# Affiche : [CLEANUP] X actualité(s) de plus d'1 mois supprimée(s)
+```
+
+**Désactiver le nettoyage automatique** (non recommandé) :
+Si vous voulez désactiver cette fonctionnalité, commentez ces lignes dans `server.js` :
+```javascript
+// setInterval(cleanupOldNews, 24 * 60 * 60 * 1000)
+// cleanupOldNews()
+```
+
+**Avantages** :
+- 📉 Base de données reste légère
+- 🚀 API plus rapide (moins de données à traiter)
+- 💾 Économise l'espace disque
+- 🧹 Pas de vieilles actualités obsolètes dans le launcher
+
+---
+
 ## 🎯 Checklist finale
 
 - [ ] Raspberry Pi OS installé et à jour
@@ -682,3 +712,5 @@ Vérifiez que :
 **🎉 Félicitations ! Votre serveur d'actualités est opérationnel ! 🎉**
 
 Besoin d'aide ? Vérifiez les logs avec `pm2 logs news-server`.
+
+**🗑️ Note** : Les actualités seront automatiquement supprimées après 1 mois.

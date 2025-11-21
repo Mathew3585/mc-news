@@ -5,6 +5,7 @@ const path = require('path')
 const bcrypt = require('bcryptjs')
 const { generateToken } = require('./middleware/auth')
 const newsRoutes = require('./routes/news')
+const { dbHelpers } = require('./database')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -76,6 +77,24 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'build', 'index.html'))
 })
 
+// Fonction pour nettoyer les vieilles actualités
+async function cleanupOldNews() {
+  try {
+    const result = await dbHelpers.deleteOldNews()
+    if (result.deleted > 0) {
+      console.log(`[CLEANUP] ${result.deleted} actualité(s) de plus d'1 mois supprimée(s)`)
+    }
+  } catch (error) {
+    console.error('[CLEANUP] Erreur lors du nettoyage des actualités:', error.message)
+  }
+}
+
+// Exécuter le nettoyage toutes les 24 heures
+setInterval(cleanupOldNews, 24 * 60 * 60 * 1000)
+
+// Exécuter le nettoyage au démarrage
+cleanupOldNews()
+
 // Démarrer le serveur
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`
@@ -99,5 +118,7 @@ app.listen(PORT, '0.0.0.0', () => {
   Username: ${ADMIN_USERNAME}
   Password: admin123
   ⚠️  CHANGEZ LE MOT DE PASSE EN PRODUCTION !
+
+🗑️  Nettoyage automatique: Actualités > 1 mois supprimées tous les jours
 `)
 })
